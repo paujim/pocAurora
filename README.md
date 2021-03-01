@@ -3,8 +3,10 @@ An example API with gin and Aurora Serverless
 
 To run set AURORA_ARN and SECRET_ARN as environmental variables (mac or linux)
 
+```javascript
 export AURORA_ARN="AWS_AURORA_ARN"
 export SECRET_ARN="AWS_SECRET_ARN"
+```
 
 Then build and run the Gin server
 
