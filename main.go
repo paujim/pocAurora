@@ -17,7 +17,8 @@ func init() {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-	sqlClient := &SQLClient{rdsdataservice.New(sess), aws.String(auroraArn), aws.String(secretArn)}
+	sqlClient := CreateSQLClient(rdsdataservice.New(sess), aws.String(auroraArn), aws.String(secretArn))
+
 	app = &App{
 		sqlClient: sqlClient,
 		router:    gin.Default(),

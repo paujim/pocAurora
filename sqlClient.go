@@ -30,6 +30,15 @@ type SQLClient struct {
 	secretArn *string
 }
 
+// CreateSQLClient ...
+func CreateSQLClient(client DataServiceAPI, auroraArn, secretArn *string) *SQLClient {
+	return &SQLClient{
+		client:    client,
+		auroraArn: auroraArn,
+		secretArn: secretArn,
+	}
+}
+
 // GetNextRacesByCategory ...
 func (h *SQLClient) GetNextRacesByCategory(count int, categories []string) (map[string]interface{}, map[string]interface{}, error) {
 	// sql := "SELECT c.category_id, c.race_id, c.race_name, c.race_number, c.meeting_id, c.meeting_name, c.advertised_start LIMIT(5) FROM Categories as c WHERE category_id in [categories]  JOIN Races as r ON r.race_id == c.race_id "

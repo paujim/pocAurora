@@ -66,7 +66,8 @@ func TestHappyPath(t *testing.T) {
 		},
 	}}
 	mockDS.On("ExecuteStatement", mock.Anything).Return(output, nil)
-	mockClient := &SQLClient{mockDS, aws.String("arn"), aws.String("secret")}
+	mockClient := CreateSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
+
 	app := &App{
 		sqlClient: mockClient,
 		router:    gin.Default(),
@@ -95,7 +96,7 @@ func TestBadRequestPath(t *testing.T) {
 	mockDS := &MockDataService{}
 	output := &rdsdataservice.ExecuteStatementOutput{}
 	mockDS.On("ExecuteStatement", mock.Anything).Return(output, nil)
-	mockClient := &SQLClient{mockDS, aws.String("arn"), aws.String("secret")}
+	mockClient := CreateSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
 	app := &App{
 		sqlClient: mockClient,
 		router:    gin.Default(),
