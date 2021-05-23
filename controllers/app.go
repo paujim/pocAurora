@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"fmt"
@@ -6,15 +6,22 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/paujim/pocAurora/repositories"
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/gin-gonic/gin"
 )
 
-// App ..
 type App struct {
-	sqlClient *SQLClient
-	router    *gin.Engine
+	repository repositories.SQLRepository
+	router     *gin.Engine
+}
+
+func NewApp(repo repositories.SQLRepository, router *gin.Engine) *App {
+	return &App{
+		repository: repo,
+		router:     router,
+	}
 }
 
 func getArrayFromQuery(query string) []string {
@@ -28,13 +35,12 @@ func validateIds(ids []string) error {
 	for _, id := range ids {
 		_, err := uuid.FromString(id)
 		if err != nil {
-			return fmt.Errorf("The %s is not valid", id)
+			return fmt.Errorf("the %s is not valid", id)
 		}
 	}
 	return nil
 }
 
-// SetupServer ...
 func (app *App) SetupServer() *gin.Engine {
 	rest := app.router.Group("/rest")
 	{
@@ -46,7 +52,6 @@ func (app *App) SetupServer() *gin.Engine {
 	return app.router
 }
 
-// RaicingEndPoint ..
 func (app *App) RaicingEndPoint(c *gin.Context) {
 	method := c.Query("method")
 	count := c.Query("count")
@@ -73,7 +78,7 @@ func (app *App) RaicingEndPoint(c *gin.Context) {
 		})
 		return
 	}
-	categoryRaceMap, raceSummaries, err := app.sqlClient.GetNextRacesByCategory(cnt, categories)
+	categoryRaceMap, raceSummaries, err := app.repository.GetNextRacesByCategory(cnt, categories)
 	if err != nil {
 		log.Println(err.Error())
 		c.JSON(500, gin.H{

@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
 	"github.com/gin-gonic/gin"
+	"github.com/paujim/pocAurora/repositories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -66,19 +67,15 @@ func TestHappyPath(t *testing.T) {
 		},
 	}}
 	mockDS.On("ExecuteStatement", mock.Anything).Return(output, nil)
-	mockClient := CreateSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
-
-	app := &App{
-		sqlClient: mockClient,
-		router:    gin.Default(),
-	}
+	repo := repositories.NewSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
+	app := NewApp(repo, gin.Default())
 
 	router := app.SetupServer()
 
 	w := performRequest(router, "/rest/v1/racing?method=nextraces-categorygroup&count=5&include_categories=%5B%224a2788f8-e825-4d36-9894-efd4baf1cfae%22%2C%229daef0d7-bf3c-4f50-921d-8e818c60fe61%22%2C%22161d9be2-e909-4326-8c2c-35ed71fb460b%22%5D")
 	assert.Equal(t, http.StatusOK, w.Code)
 	var response map[string]interface{}
-	err := json.Unmarshal([]byte(w.Body.String()), &response)
+	err := json.Unmarshal(w.Body.Bytes(), &response)
 
 	assert.Nil(t, err)
 
@@ -96,11 +93,8 @@ func TestBadRequestPath(t *testing.T) {
 	mockDS := &MockDataService{}
 	output := &rdsdataservice.ExecuteStatementOutput{}
 	mockDS.On("ExecuteStatement", mock.Anything).Return(output, nil)
-	mockClient := CreateSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
-	app := &App{
-		sqlClient: mockClient,
-		router:    gin.Default(),
-	}
+	repo := repositories.NewSQLClient(mockDS, aws.String("arn"), aws.String("secret"))
+	app := NewApp(repo, gin.Default())
 
 	router := app.SetupServer()
 

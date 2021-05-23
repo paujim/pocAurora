@@ -1,4 +1,4 @@
-package main
+package repositories
 
 import (
 	"fmt"
@@ -18,29 +18,29 @@ const (
 	ADVERTISED_START
 )
 
-// DataServiceAPI ...
 type DataServiceAPI interface {
 	ExecuteStatement(input *rdsdataservice.ExecuteStatementInput) (*rdsdataservice.ExecuteStatementOutput, error)
 }
 
-// SQLClient ...
-type SQLClient struct {
-	client    DataServiceAPI
+type SQLRepository interface {
+	GetNextRacesByCategory(count int, categories []string) (map[string]interface{}, map[string]interface{}, error)
+}
+
+type sqlRepository struct {
+	dataAPI   DataServiceAPI
 	auroraArn *string
 	secretArn *string
 }
 
-// CreateSQLClient ...
-func CreateSQLClient(client DataServiceAPI, auroraArn, secretArn *string) *SQLClient {
-	return &SQLClient{
-		client:    client,
+func NewSQLClient(dataAPI DataServiceAPI, auroraArn, secretArn *string) SQLRepository {
+	return &sqlRepository{
+		dataAPI:   dataAPI,
 		auroraArn: auroraArn,
 		secretArn: secretArn,
 	}
 }
 
-// GetNextRacesByCategory ...
-func (h *SQLClient) GetNextRacesByCategory(count int, categories []string) (map[string]interface{}, map[string]interface{}, error) {
+func (h *sqlRepository) GetNextRacesByCategory(count int, categories []string) (map[string]interface{}, map[string]interface{}, error) {
 	// sql := "SELECT c.category_id, c.race_id, c.race_name, c.race_number, c.meeting_id, c.meeting_name, c.advertised_start LIMIT(5) FROM Categories as c WHERE category_id in [categories]  JOIN Races as r ON r.race_id == c.race_id "
 	sql := "SELECT race_id, race_name, race_number, meeting_id, meeting_name, category_id, advertised_start FROM Racing.Races WHERE category_id IN ("
 	last := len(categories) - 1
@@ -58,7 +58,7 @@ func (h *SQLClient) GetNextRacesByCategory(count int, categories []string) (map[
 		SecretArn:   h.secretArn,
 		Sql:         aws.String(sql),
 	}
-	resp, err := h.client.ExecuteStatement(params)
+	resp, err := h.dataAPI.ExecuteStatement(params)
 	if err != nil {
 		log.Printf("Error fetching races: %s", err)
 		return nil, nil, err
